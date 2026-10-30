@@ -26,6 +26,9 @@ android {
             release {
                 // Loaded only in CI from encrypted GitHub Actions secrets.
                 storeFile file(System.getenv("ANDROID_KEYSTORE_PATH"))
+                // The CI initializer creates a JKS keystore; do not let the Android
+                // Gradle plugin infer the JVM default (PKCS12) when loading it.
+                storeType "JKS"
                 storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD")
                 keyAlias System.getenv("ANDROID_KEY_ALIAS")
                 keyPassword System.getenv("ANDROID_KEY_PASSWORD")
