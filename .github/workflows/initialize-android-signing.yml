@@ -29,13 +29,23 @@ jobs:
           KEY_ALIAS="wanmei-release"
           KEYSTORE_PATH="$RUNNER_TEMP/wanmei-release.jks"
 
+          # Explicitly use JKS: JDK 21 defaults keytool to PKCS12, which
+          # requires the store and private-key passwords to be identical.
           keytool -genkeypair -v \
+            -storetype JKS \
             -keystore "$KEYSTORE_PATH" \
             -storepass "$STORE_PASS" \
             -keypass "$KEY_PASS" \
             -alias "$KEY_ALIAS" \
             -dname "CN=Wanmei Jihua, OU=Android, O=Personal, L=Unknown, ST=Unknown, C=CN" \
             -keyalg RSA -keysize 2048 -validity 10000
+
+          # Validate both the keystore password and private-key password
+          # before storing any secrets in GitHub.
+          keytool -list -v -storetype JKS -keystore "$KEYSTORE_PATH" -storepass "$STORE_PASS" >/dev/null
+          keytool -keypasswd -storetype JKS -keystore "$KEYSTORE_PATH" \
+            -storepass "$STORE_PASS" -alias "$KEY_ALIAS" \
+            -keypass "$KEY_PASS" -new "$KEY_PASS" >/dev/null
 
           export ANDROID_KEYSTORE_BASE64="$(base64 -w0 "$KEYSTORE_PATH")"
           export ANDROID_KEYSTORE_PASSWORD="$STORE_PASS"
