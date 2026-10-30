@@ -4,8 +4,8 @@
     <string name="title_activity_main">完美计划</string>
     <string name="package_name">com.maodunyu.wanmeijihua</string>
     <string name="custom_url_scheme">com.maodunyu.wanmeijihua</string>
-    <string name="rest_countdown_channel_name">Rest countdown</string>
-    <string name="rest_channel_name">Rest timer</string>
-    <string name="rest_quiet_channel_name">Rest timer, without vibration</string>
-    <string name="rest_channel_desc">Rest between sets, in the notification shade. The lock screen shows it only when notifications are allowed there.</string>
+    <string name="rest_countdown_channel_name">组间休息倒计时</string>
+    <string name="rest_channel_name">休息计时器</string>
+    <string name="rest_quiet_channel_name">静音休息计时器</string>
+    <string name="rest_channel_desc">训练组间休息倒计时通知。</string>
 </resources>
