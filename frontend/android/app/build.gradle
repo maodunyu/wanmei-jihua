@@ -1,5 +1,7 @@
 apply plugin: 'com.android.application'
 
+def hasReleaseSigning = System.getenv("ANDROID_KEYSTORE_PATH") != null
+
 android {
     namespace = "ch.duartesantos.opengym"
     compileSdk = rootProject.ext.compileSdkVersion
@@ -20,19 +22,21 @@ android {
         }
     }
     signingConfigs {
-        release {
-            // Loaded only in CI from encrypted GitHub Actions secrets.
-            storeFile file(System.getenv("ANDROID_KEYSTORE_PATH"))
-            storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD")
-            keyAlias System.getenv("ANDROID_KEY_ALIAS")
-            keyPassword System.getenv("ANDROID_KEY_PASSWORD")
+        if (hasReleaseSigning) {
+            release {
+                // Loaded only in CI from encrypted GitHub Actions secrets.
+                storeFile file(System.getenv("ANDROID_KEYSTORE_PATH"))
+                storePassword System.getenv("ANDROID_KEYSTORE_PASSWORD")
+                keyAlias System.getenv("ANDROID_KEY_ALIAS")
+                keyPassword System.getenv("ANDROID_KEY_PASSWORD")
+            }
         }
     }
     buildTypes {
         release {
             // CI uses the permanent private release key. Local builds without the
             // CI environment fall back to the debug key for developer testing.
-            if (System.getenv("ANDROID_KEYSTORE_PATH")) {
+            if (hasReleaseSigning) {
                 signingConfig signingConfigs.release
             } else {
                 signingConfig signingConfigs.debug
