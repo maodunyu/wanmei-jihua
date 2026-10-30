@@ -1,0 +1,99 @@
+name: Initialize Android Signing Key
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  initialize-signing:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Generate permanent Android keystore and save encrypted repository secrets
+        shell: bash
+        env:
+          BOOTSTRAP_TOKEN: ${{ secrets.BOOTSTRAP_TOKEN }}
+        run: |
+          set -euo pipefail
+          set +x
+
+          if [ -z "${BOOTSTRAP_TOKEN}" ]; then
+            echo "::error::BOOTSTRAP_TOKEN is missing."
+            exit 1
+          fi
+
+          STORE_PASS="$(openssl rand -hex 32)"
+          KEY_PASS="$(openssl rand -hex 32)"
+          KEY_ALIAS="wanmei-release"
+          KEYSTORE_PATH="$RUNNER_TEMP/wanmei-release.jks"
+
+          keytool -genkeypair -v \
+            -keystore "$KEYSTORE_PATH" \
+            -storepass "$STORE_PASS" \
+            -keypass "$KEY_PASS" \
+            -alias "$KEY_ALIAS" \
+            -dname "CN=Wanmei Jihua, OU=Android, O=Personal, L=Unknown, ST=Unknown, C=CN" \
+            -keyalg RSA -keysize 2048 -validity 10000
+
+          export ANDROID_KEYSTORE_BASE64="$(base64 -w0 "$KEYSTORE_PATH")"
+          export ANDROID_KEYSTORE_PASSWORD="$STORE_PASS"
+          export ANDROID_KEY_ALIAS="$KEY_ALIAS"
+          export ANDROID_KEY_PASSWORD="$KEY_PASS"
+
+          python -m pip install --quiet pynacl
+
+          python <<'PY'
+          import base64
+          import json
+          import os
+          import urllib.request
+          from nacl.public import PublicKey, SealedBox
+
+          owner, repo = "maodunyu", "wanmei-jihua"
+          token = os.environ["BOOTSTRAP_TOKEN"]
+          api = f"https://api.github.com/repos/{owner}/{repo}/actions/secrets"
+          headers = {
+              "Accept": "application/vnd.github+json",
+              "Authorization": f"Bearer {token}",
+              "X-GitHub-Api-Version": "2022-11-28",
+              "User-Agent": "wanmei-jihua-signing-bootstrap",
+          }
+
+          def request(url, method="GET", payload=None):
+              data = None if payload is None else json.dumps(payload).encode()
+              req = urllib.request.Request(url, data=data, headers=headers, method=method)
+              with urllib.request.urlopen(req, timeout=30) as response:
+                  return json.loads(response.read()) if response.status == 200 else {}
+
+          public = request(api + "/public-key")
+          key = PublicKey(base64.b64decode(public["key"]))
+          names = [
+              "ANDROID_KEYSTORE_BASE64",
+              "ANDROID_KEYSTORE_PASSWORD",
+              "ANDROID_KEY_ALIAS",
+              "ANDROID_KEY_PASSWORD",
+          ]
+
+          for name in names:
+              value = os.environ[name].encode()
+              encrypted = base64.b64encode(SealedBox(key).encrypt(value)).decode()
+              req = urllib.request.Request(
+                  api + "/" + name,
+                  data=json.dumps({
+                      "encrypted_value": encrypted,
+                      "key_id": public["key_id"],
+                  }).encode(),
+                  headers=headers,
+                  method="PUT",
+              )
+              with urllib.request.urlopen(req, timeout=30) as response:
+                  if response.status not in (201, 204):
+                      raise RuntimeError(f"GitHub rejected secret {name}: HTTP {response.status}")
+              print(f"Saved repository secret: {name}")
+
+          print("Signing key initialization completed. The keystore was not uploaded as an artifact.")
+          PY
+
+          rm -f "$KEYSTORE_PATH"
