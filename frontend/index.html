@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
@@ -35,12 +35,12 @@
       var box = document.createElement('div'), h = document.createElement('p'), p = document.createElement('p');
       h.className = 'h';
       h.textContent = title;
-      p.textContent = 'Reloading often helps. If it keeps happening, please send us this:';
+      p.textContent = '重新打开通常可以解决问题。如果问题持续出现，请把下面的信息发给我们：';
       var c = document.createElement('code');
       c.textContent = (detail || 'No error, it just never finished loading.') + ' (' + navigator.userAgent + ')';
       var r = document.createElement('button');
       r.type = 'button';
-      r.textContent = 'Reload';
+      r.textContent = '重新打开';
       r.onclick = function () { location.reload(); };
       box.appendChild(h); box.appendChild(p); box.appendChild(c); box.appendChild(r);
       b.appendChild(box);
@@ -50,14 +50,14 @@
       if (t && t.tagName === 'SCRIPT') return fail('完美计划暂时无法启动。', 'Could not load ' + (t.src || 'a script'));
       if (!e || !e.message) return;
       last = e.message + (e.filename ? ' at ' + e.filename.split('/').pop() + ':' + e.lineno : '');
-      if (/SyntaxError|Unexpected|Invalid regular expression/i.test(e.message)) fail('openGym could not start on this browser.', last);
+      if (/SyntaxError|Unexpected|Invalid regular expression/i.test(e.message)) fail('完美计划暂时无法启动。', last);
     }, true);
     window.addEventListener('unhandledrejection', function (e) {
       var r = e && e.reason;
       if (r) last = String((r && r.message) || r);
     });
     setTimeout(function () {
-      fail(last ? 'openGym could not start on this browser.' : '完美计划启动时间较长。', last);
+      fail(last ? '完美计划暂时无法启动。' : '完美计划启动时间较长。', last);
     }, 10000);
   })();
 </script>
@@ -67,7 +67,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="openGym">
+<meta name="apple-mobile-web-app-title" content="完美计划">
 <!-- use-credentials: browsers fetch the manifest without cookies, even same-origin; behind an auth
      proxy (Authelia, Cloudflare Access, Teleport…) that fetch is a login redirect and the Home Screen
      icon comes out generic. iOS 26 reads the icon from the manifest, so this is where it shows. -->
