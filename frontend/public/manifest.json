@@ -1,7 +1,7 @@
 {
-  "name": "openGym",
-  "short_name": "openGym",
-  "description": "Personal gym & body weight tracker",
+  "name": "完美计划",
+  "short_name": "完美计划",
+  "description": "健身训练、减脂塑形与身体数据记录",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
