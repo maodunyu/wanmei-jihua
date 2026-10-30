@@ -17,7 +17,7 @@
   // 16.3) kills the module graph before any of the app runs, and the logo lifted forever. Here,
   // outside the bundle and in plain old syntax, so it still runs then: a script that fails to
   // load or parse, or no app after 10 s, puts the reason and a Reload button where the logo was.
-  // English only, as the packs are in the bundle that did not load. lib/boot.js removes #boot
+  // Chinese-first fallback, independent of the app bundle that did not load. lib/boot.js removes #boot
   // (message included) once the app draws, so a slow start that gets there still gets there.
   (function () {
     var shown = false, last = '';
@@ -37,7 +37,7 @@
       h.textContent = title;
       p.textContent = '重新打开通常可以解决问题。如果问题持续出现，请把下面的信息发给我们：';
       var c = document.createElement('code');
-      c.textContent = (detail || 'No error, it just never finished loading.') + ' (' + navigator.userAgent + ')';
+      c.textContent = (detail || '未捕获到具体错误，页面未能完成启动。') + ' (' + navigator.userAgent + ')';
       var r = document.createElement('button');
       r.type = 'button';
       r.textContent = '重新打开';
@@ -47,7 +47,7 @@
     }
     window.addEventListener('error', function (e) {
       var t = e && e.target;
-      if (t && t.tagName === 'SCRIPT') return fail('完美计划暂时无法启动。', 'Could not load ' + (t.src || 'a script'));
+      if (t && t.tagName === 'SCRIPT') return fail('完美计划暂时无法启动。', '无法加载脚本：' + (t.src || '未知脚本'));
       if (!e || !e.message) return;
       last = e.message + (e.filename ? ' at ' + e.filename.split('/').pop() + ':' + e.lineno : '');
       if (/SyntaxError|Unexpected|Invalid regular expression/i.test(e.message)) fail('完美计划暂时无法启动。', last);
