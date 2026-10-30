@@ -17,6 +17,10 @@
 import { LANGS } from './i18n-core.js'
 
 const KEYS = Object.keys(LANGS)
+// The standalone phone app is shipped as a Chinese-first product. A profile that has never
+// picked a language starts in Simplified Chinese there; web/self-hosted copies still follow
+// their configured or browser language. Vite folds this flag at build time.
+const MOBILE_BUILD = import.meta.env?.VITE_MOBILE === '1'
 
 /** A language tag ('pt-BR', 'pt_br', 'de-AT', 'en-US') as one of LANGS' keys, or null. */
 export function matchLocale(tag) {
@@ -36,6 +40,7 @@ export function matchLocale(tag) {
 export function autoLang(S, config, navLangs = []) {
   if (!S || S.langAuto !== true) return null
   return matchLocale(config?.default_lang)
+    || (MOBILE_BUILD ? 'zh' : null)
     || (navLangs || []).map(matchLocale).find(Boolean)
     || 'en'
 }
