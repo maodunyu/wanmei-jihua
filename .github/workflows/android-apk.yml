@@ -1,0 +1,44 @@
+name: Android APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main, master]
+    paths:
+      - 'frontend/**'
+      - 'scripts/catalogue/**'
+      - '.github/workflows/android-apk.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Install dependencies
+        working-directory: frontend
+        run: npm ci
+      - name: Build mobile assets
+        working-directory: frontend
+        run: npm run build:mobile
+      - name: Build release APK
+        working-directory: frontend/android
+        run: chmod +x gradlew && ./gradlew --no-daemon assembleSideloadRelease
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wanmei-jihua-android-apk
+          path: frontend/android/app/build/outputs/apk/sideload/release/*.apk
+          if-no-files-found: error
+          retention-days: 14
